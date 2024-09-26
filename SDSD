@@ -2,8 +2,8 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Camera = workspace.CurrentCamera
  
-local healthBarHeight = 0.08 -- Height of health bar
-local maxHealthBarWidth = 80 -- Fixed width for health bar
+local healthBarHeight = 0.08
+local maxHealthBarWidth = 80
  
 local healthBars = {}
  
@@ -16,22 +16,22 @@ local function createHealthBarAndDistance(character)
     if healthBars[player.UserId] then return end
  
     local healthBar = Instance.new("BillboardGui")
-    healthBar.Size = UDim2.new(0, maxHealthBarWidth, 0, 40) -- Fixed size for health bar
+    healthBar.Size = UDim2.new(0, maxHealthBarWidth, 0, 40)
     healthBar.Adornee = character:FindFirstChild("Head")
-    healthBar.ExtentsOffset = Vector3.new(0, 2, 0) -- Position above the head
-    healthBar.AlwaysOnTop = true -- Ensure it's always visible
+    healthBar.ExtentsOffset = Vector3.new(0, 2, 0)
+    healthBar.AlwaysOnTop = true
     healthBar.Parent = character:FindFirstChild("Head")
  
     local healthFrame = Instance.new("Frame")
     healthFrame.Size = UDim2.new(1, 0, healthBarHeight, 0)
-    healthFrame.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- Green for health
+    healthFrame.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
     healthFrame.Parent = healthBar
  
     local healthText = Instance.new("TextLabel")
     healthText.Size = UDim2.new(1, 0, 1, 0)
     healthText.BackgroundTransparency = 1
     healthText.TextColor3 = Color3.fromRGB(255, 255, 255)
-    healthText.TextStrokeTransparency = 0 -- Add stroke for better visibility
+    healthText.TextStrokeTransparency = 0
     healthText.Parent = healthBar
  
     healthBars[player.UserId] = {
@@ -47,7 +47,7 @@ local function createHealthBarAndDistance(character)
             healthFrame.Size = UDim2.new(humanoid.Health / humanoid.MaxHealth, 0, healthBarHeight, 0)
  
             local distance = (Camera.CFrame.Position - character.PrimaryPart.Position).Magnitude
-            healthText.Text = string.format("Distance: %.1f", distance) -- Update distance text
+            healthText.Text = string.format("Distance: %.1f", distance)
  
         else
  
