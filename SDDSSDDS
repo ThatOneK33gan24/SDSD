@@ -1,0 +1,8 @@
+if true then
+loadstring(game:HttpGet("https://raw.githubusercontent.com/ThatOneK33gan24/SDSD/refs/heads/main/DSDS"))();
+print("Script One Loaded");
+wait(0.2);
+loadstring(game:HttpGet("https://raw.githubusercontent.com/ThatOneK33gan24/SDSD/refs/heads/main/SDSD"))();
+print("Script Two Loaded");
+wait(0.2);
+end
