@@ -1,0 +1,77 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
+ 
+local healthBarHeight = 0.08 -- Height of health bar
+local maxHealthBarWidth = 80 -- Fixed width for health bar
+ 
+local healthBars = {}
+ 
+local function createHealthBarAndDistance(character)
+    if not character or not character:FindFirstChild("Humanoid") then return end
+ 
+    local humanoid = character:FindFirstChild("Humanoid")
+    local player = Players:GetPlayerFromCharacter(character)
+ 
+    if healthBars[player.UserId] then return end
+ 
+    local healthBar = Instance.new("BillboardGui")
+    healthBar.Size = UDim2.new(0, maxHealthBarWidth, 0, 40) -- Fixed size for health bar
+    healthBar.Adornee = character:FindFirstChild("Head")
+    healthBar.ExtentsOffset = Vector3.new(0, 2, 0) -- Position above the head
+    healthBar.AlwaysOnTop = true -- Ensure it's always visible
+    healthBar.Parent = character:FindFirstChild("Head")
+ 
+    local healthFrame = Instance.new("Frame")
+    healthFrame.Size = UDim2.new(1, 0, healthBarHeight, 0)
+    healthFrame.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- Green for health
+    healthFrame.Parent = healthBar
+ 
+    local healthText = Instance.new("TextLabel")
+    healthText.Size = UDim2.new(1, 0, 1, 0)
+    healthText.BackgroundTransparency = 1
+    healthText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    healthText.TextStrokeTransparency = 0 -- Add stroke for better visibility
+    healthText.Parent = healthBar
+ 
+    healthBars[player.UserId] = {
+        HealthBar = healthBar,
+        HealthFrame = healthFrame,
+        HealthText = healthText,
+        Humanoid = humanoid
+    }
+ 
+    local function updateHealthBar()
+        if humanoid and humanoid.Health > 0 then
+            -- Update health bar size based on health
+            healthFrame.Size = UDim2.new(humanoid.Health / humanoid.MaxHealth, 0, healthBarHeight, 0)
+ 
+            local distance = (Camera.CFrame.Position - character.PrimaryPart.Position).Magnitude
+            healthText.Text = string.format("Distance: %.1f", distance) -- Update distance text
+ 
+        else
+ 
+            healthBars[player.UserId] = nil
+            healthBar:Destroy()
+        end
+    end
+ 
+    RunService.RenderStepped:Connect(updateHealthBar)
+end
+ 
+local function onPlayerAdded(player)
+    player.CharacterAdded:Connect(function(character)
+        wait(1) -- Wait for character to load
+        createHealthBarAndDistance(character)
+    end)
+ 
+    if player.Character then
+        createHealthBarAndDistance(player.Character)
+    end
+end
+ 
+Players.PlayerAdded:Connect(onPlayerAdded)
+ 
+for _, player in pairs(Players:GetPlayers()) do
+    onPlayerAdded(player)
+end
