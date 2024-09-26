@@ -6,23 +6,23 @@ local localPlayer = Players.LocalPlayer
 local camera = Workspace.CurrentCamera
 local mouse = localPlayer:GetMouse()
 
-local bulletSpeed = 1100 -- Bullet speed
-local gravity = Vector3.new(0, -196.2, 0) -- Gravity in Roblox (m/s^2)
-local FOV = 150 -- Field of view for the aimbot
-local aimbotEnabled = false -- Toggle aimbot
-local targetPlayer = nil -- Variable to hold the current target
+local bulletSpeed = 1100
+local gravity = Vector3.new(0, -196.2, 0)
+local FOV = 150
+local aimbotEnabled = false
+local targetPlayer = nil
 
 local fovCircle = Drawing.new("Circle")
 fovCircle.Visible = true
 fovCircle.Thickness = 2
 fovCircle.Radius = FOV
-fovCircle.Color = Color3.fromRGB(255, 0, 0) -- Red circle
+fovCircle.Color = Color3.fromRGB(255, 0, 0)
 fovCircle.Filled = false
 
 local tracerLine = Drawing.new("Line")
-tracerLine.Visible = false -- Initially hidden
+tracerLine.Visible = false
 tracerLine.Thickness = 2
-tracerLine.Color = Color3.fromRGB(0, 255, 0) -- Green tracer
+tracerLine.Color = Color3.fromRGB(0, 255, 0)
 
 local function updateFOVCircle()
     fovCircle.Position = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
@@ -60,25 +60,25 @@ end
 
 local function predictMovement(target, distance)
     local velocity = getTargetVelocity(target)
-    local timeToHit = distance / bulletSpeed -- Time it takes for bullet to reach the target
+    local timeToHit = distance / bulletSpeed
 
     local predictedPosition = target.Character.Head.Position
     if isJumping(target) then
-        predictedPosition = predictedPosition + Vector3.new(0, velocity.Y * timeToHit, 0) -- Predict upwards if jumping
+        predictedPosition = predictedPosition + Vector3.new(0, velocity.Y * timeToHit, 0)
     end
 
-    local horizontalVelocity = Vector3.new(velocity.X, 0, velocity.Z) -- Horizontal movement only
+    local horizontalVelocity = Vector3.new(velocity.X, 0, velocity.Z)
     local predictedHorizontalPosition = predictedPosition + (horizontalVelocity * timeToHit)
 
-    local predictionFactor = math.clamp(distance / 300, 0.4, 1) -- Stronger prediction for far ranges
+    local predictionFactor = math.clamp(distance / 300, 0.4, 1)
 
     return predictedPosition + ((predictedHorizontalPosition - predictedPosition) * predictionFactor)
 end
 
 local function predictBulletDrop(distance, timeToHit)
-    local drop = 0.5 * gravity.Y * (timeToHit ^ 2) -- Bullet drop in the Y direction
-    local compensationFactor = math.clamp(distance / 200, 0.1, 0.5) -- Compensation scale based on distance
-    return Vector3.new(0, -drop * compensationFactor, 0) -- Adjust the aim upwards
+    local drop = 0.5 * gravity.Y * (timeToHit ^ 2)
+    local compensationFactor = math.clamp(distance / 200, 0.1, 0.5)
+    return Vector3.new(0, -drop * compensationFactor, 0)
 end
 
 local function getClosestTarget()
@@ -117,7 +117,7 @@ local function aimAtTarget(target)
             local aimPosition = predictedPosition + bulletDrop
 
             camera.CFrame = CFrame.new(camera.CFrame.Position, aimPosition)
-            targetPlayer = target -- Store the target for the tracer
+            targetPlayer = target
         end
     else
         targetPlayer = nil
@@ -125,15 +125,15 @@ local function aimAtTarget(target)
 end
 
 RunService.RenderStepped:Connect(function()
-    if UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then -- Check if MouseButton2 is pressed
+    if UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
         aimbotEnabled = true
-        targetPlayer = getClosestTarget() -- Get the closest target when aiming
+        targetPlayer = getClosestTarget()
         if targetPlayer then
             aimAtTarget(targetPlayer)
         end
     else
         aimbotEnabled = false
-        targetPlayer = nil -- Reset target when not aiming
+        targetPlayer = nil
     end
 
     updateFOVCircle()
