@@ -1,0 +1,107 @@
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local localPlayer = Players.LocalPlayer
+local camera = Workspace.CurrentCamera
+
+local FOV = 150
+local aimbotEnabled = false
+local targetPlayer = nil
+
+-- Create FOV Circle
+local fovCircle = Drawing.new("Circle")
+fovCircle.Visible = true
+fovCircle.Thickness = 2
+fovCircle.Radius = FOV
+fovCircle.Color = Color3.fromRGB(255, 0, 0)
+fovCircle.Filled = false
+
+-- Create Tracer Line
+local tracerLine = Drawing.new("Line")
+tracerLine.Visible = false
+tracerLine.Thickness = 2
+tracerLine.Color = Color3.fromRGB(0, 255, 0)
+
+local function updateFOVCircle()
+    fovCircle.Position = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
+end
+
+local function updateTracer()
+    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("Head") then
+        local head = targetPlayer.Character.Head
+        local headPosition, onScreen = camera:WorldToViewportPoint(head.Position)
+
+        if onScreen then
+            tracerLine.From = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
+            tracerLine.To = Vector2.new(headPosition.X, headPosition.Y)
+            tracerLine.Visible = true
+        else
+            tracerLine.Visible = false
+        end
+    else
+        tracerLine.Visible = false
+    end
+end
+
+local function getClosestTarget()
+    local closestEntity = nil
+    local shortestDistance = FOV
+
+    -- Check for Player and Soldier Models
+    local playerModel = Workspace.ReplicatedStorage.Shared.entities.Player.Model
+    local soldierModel = Workspace.ReplicatedStorage.Shared.entities.Soldier.Model
+    local oldSoldierModel = Workspace.ReplicatedStorage.Shared.entities.Soldier.old_Model
+
+    local models = {playerModel, soldierModel, oldSoldierModel}
+
+    for _, model in pairs(models) do
+        if model and model:FindFirstChild("Head") and model:FindFirstChild("HumanoidRootPart") then
+            local head = model.Head
+            local distance = (head.Position - camera.CFrame.Position).Magnitude
+            local screenPos, onScreen = camera:WorldToViewportPoint(head.Position)
+
+            if distance <= 150 and onScreen then
+                local distanceFromCrosshair = (Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)).Magnitude
+                if distanceFromCrosshair < shortestDistance then
+                    closestEntity = model
+                    shortestDistance = distanceFromCrosshair
+                end
+            end
+        end
+    end
+
+    return closestEntity
+end
+
+local function aimAtTarget(target)
+    if target and target:FindFirstChild("Head") then
+        local aimPosition = target.Head.Position + Vector3.new(0, 0.4, 0) -- Adjust height offset
+        camera.CFrame = CFrame.new(camera.CFrame.Position, aimPosition)
+        targetPlayer = target
+    else
+        targetPlayer = nil
+    end
+end
+
+RunService.RenderStepped:Connect(function()
+    if UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
+        aimbotEnabled = true
+        targetPlayer = getClosestTarget()
+        if targetPlayer then
+            aimAtTarget(targetPlayer)
+        end
+    else
+        aimbotEnabled = false
+        targetPlayer = nil
+    end
+
+    updateFOVCircle()
+    updateTracer()
+end)
+
+RunService.RenderStepped:Connect(function()
+    if not aimbotEnabled then
+        tracerLine.Visible = false
+    end
+end)
