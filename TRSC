@@ -1,0 +1,52 @@
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local handModels = replicatedStorage:WaitForChild("HandModels")
+local workspace = game:GetService("Workspace")
+
+local function changeModelProperties(model)
+    for _, part in ipairs(model:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.Material = Enum.Material.Plastic
+            part.Transparency = 0.12
+
+            if string.find(part.Name, "Grip") then
+                part.BrickColor = BrickColor.new("Bright blue")
+                part.Color = Color3.fromRGB(0, 0, 255)
+            else
+                part.BrickColor = BrickColor.new("Black")
+                part.Color = Color3.fromRGB(0, 0, 0)
+            end
+        end
+    end
+end
+
+for _, model in ipairs(handModels:GetChildren()) do
+    if model:IsA("Model") then
+        changeModelProperties(model)
+    end
+end
+
+local function changeFPSArmsProperties()
+    local fpsArms = workspace.Ignore:FindFirstChild("FPSArms")
+    if fpsArms then
+        for _, part in ipairs(fpsArms:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.Material = Enum.Material.Plastic
+                part.Transparency = 0.98
+                part.BrickColor = BrickColor.new("Bright blue")
+                part.Color = Color3.fromRGB(0, 0, 255)
+            end
+        end
+    end
+end
+
+changeFPSArmsProperties()
+
+local function applyFullbright()
+    local lighting = game:GetService("Lighting")
+    lighting.Brightness = 2
+    lighting.TimeOfDay = "14:00:00"
+    lighting.FogEnd = 5000
+    lighting.FogColor = Color3.fromRGB(255, 255, 255)
+end
+
+applyFullbright()
