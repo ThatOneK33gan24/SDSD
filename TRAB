@@ -28,8 +28,8 @@ local function updateFOVCircle()
 end
 
 local function updateTracer()
-    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("Head") then
-        local head = targetPlayer.Character.Head
+    if targetPlayer and targetPlayer:FindFirstChild("Head") then
+        local head = targetPlayer.Head
         local headPosition, onScreen = camera:WorldToViewportPoint(head.Position)
 
         if onScreen then
@@ -55,7 +55,7 @@ local function getClosestTarget()
 
     local models = {playerModel, soldierModel, oldSoldierModel}
 
-    for _, model in pairs(models) do
+    for _, model in ipairs(models) do
         if model and model:FindFirstChild("Head") and model:FindFirstChild("HumanoidRootPart") then
             local head = model.Head
             local distance = (head.Position - camera.CFrame.Position).Magnitude
