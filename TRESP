@@ -2,16 +2,21 @@ local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local Camera = workspace.CurrentCamera
 
-local espObjects = {}
+local espObjects = {} -- Store ESP elements
 
+local maxDistance = 600 -- Maximum distance for ESP visibility
+
+-- Function to create ESP with name only
 local function createNameESP(model, entityName, headPartName)
     local head = model:FindFirstChild(headPartName) or model.PrimaryPart
     if not head then
+        warn("No valid head part found for ESP:", model.Name)
         return
     end
 
+    -- Create BillboardGui for displaying name
     local nameGui = Instance.new("BillboardGui")
-    nameGui.Size = UDim2.new(0, 100, 0, 50)
+    nameGui.Size = UDim2.new(0, 100, 0, 50) -- Width and height for name display
     nameGui.Adornee = head
     nameGui.ExtentsOffset = Vector3.new(0, 2, 0)
     nameGui.AlwaysOnTop = true
@@ -23,7 +28,7 @@ local function createNameESP(model, entityName, headPartName)
     nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     nameLabel.TextStrokeTransparency = 0
     nameLabel.TextScaled = true
-    nameLabel.Text = entityName
+    nameLabel.Text = entityName -- Display entity name
     nameLabel.Parent = nameGui
 
     espObjects[model] = {
@@ -31,8 +36,16 @@ local function createNameESP(model, entityName, headPartName)
         NameLabel = nameLabel
     }
 
+    -- Update loop to ensure the GUI remains accurate
     RunService.RenderStepped:Connect(function()
         if model.Parent and nameGui.Adornee then
+            -- Check distance to the camera
+            local distance = (Camera.CFrame.Position - head.Position).Magnitude
+            if distance > maxDistance then
+                nameGui.Enabled = false -- Hide ESP if out of range
+            else
+                nameGui.Enabled = true -- Show ESP if within range
+            end
         else
             espObjects[model] = nil
             nameGui:Destroy()
@@ -40,10 +53,12 @@ local function createNameESP(model, entityName, headPartName)
     end)
 end
 
+-- Monitor the objects in ReplicatedStorage for ESP
 local function monitorESPObjects()
     local replicatedStorage = workspace.Parent:GetService("ReplicatedStorage")
     local entities = replicatedStorage:WaitForChild("Shared"):WaitForChild("entities")
 
+    -- Track specific entity types
     local objectInfo = {
         Player = {name = function(player) return player.Name end, headPartName = "Head"},
         Soldier = {name = function(model) return "Soldier" end, headPartName = "Head"},
@@ -51,16 +66,19 @@ local function monitorESPObjects()
         LootSafe = {name = function(model) return "Loot Safe" end, headPartName = "Body"},
         SupplyDrop = {name = function(model) return "Supply Drop" end, headPartName = "Crates"},
         DroppedItem = {name = function(model) return "Dropped Item" end, headPartName = "Part"},
-        Backpack = {name = function(model) return "Backpack" end, headPartName = "Model"}
+        Backpack = {name = function(model) return "Backpack" end, headPartName = "Model"},
+        Model = {name = function(model) return "Player: " .. model.Name end, headPartName = "Head"}
     }
 
     for objectType, partInfo in pairs(objectInfo) do
         local folder = entities:FindFirstChild(objectType)
         if folder then
+            -- Check existing models in the folder
             for _, model in pairs(folder:GetChildren()) do
                 createNameESP(model, partInfo.name(model), partInfo.headPartName)
             end
 
+            -- Listen for new models being added
             folder.ChildAdded:Connect(function(newModel)
                 createNameESP(newModel, partInfo.name(newModel), partInfo.headPartName)
             end)
@@ -68,4 +86,5 @@ local function monitorESPObjects()
     end
 end
 
+-- Start monitoring the objects
 monitorESPObjects()
